@@ -19,7 +19,7 @@ jar {
     manifest {
         attributes(
                 'Class-Path': configurations.compile.collect { it.getName() }.join(' '),
-                'Main-Class': 'Main'
+                'Main-Class': 'me.aryan.hangman.Hangman'
         )
     }
 }

@@ -4,6 +4,7 @@ import javax.net.ssl.HttpsURLConnection;
 import java.awt.*;
 import java.io.*;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
@@ -24,7 +25,7 @@ public class Hangman {
     private String chosenWord = null;
     private int lives = 5;
 
-    private List<String> correctlyGuessed = new ArrayList<>();
+    private final List<String> correctlyGuessed = new ArrayList<>();
 
     Hangman(boolean start) throws Exception {
         DICTIONARY_URL = new URL("https://raw.githubusercontent.com/dwyl/english-words/master/words_alpha.txt");
@@ -33,15 +34,26 @@ public class Hangman {
             start();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         Console console = System.console();
+
         if (console == null && !GraphicsEnvironment.isHeadless()) {
-            String filename = Hangman.class.getProtectionDomain().getCodeSource().getLocation().toString().substring(6);
-            try {
-                Runtime.getRuntime().exec(new String[]{"cmd", "/c", "start", "cmd", "/k", "java -jar \"" + filename + "\""});
-            } catch (IOException e) {
-                e.printStackTrace();
+            String jarPath = Hangman.class.getProtectionDomain().getCodeSource().getLocation().getPath();
+            String decodedPath = URLDecoder.decode(jarPath, "UTF-8");
+            String windowTitle = "Hangman";
+            String systemName = System.getProperty("os.name").toLowerCase();
+
+            if (systemName.contains("windows")) {
+                new ProcessBuilder("cmd", "/k", "start", "\"" + windowTitle + "\"", "java", "-jar", decodedPath.substring(1), "run").start();
+            } else if (systemName.contains("mac")) {
+                new ProcessBuilder("/bin/bash", "-c", "java", "-jar", decodedPath, "run").start();
+            } else if (systemName.contains("linux")) {
+                new ProcessBuilder("xfce4-terminal", "--title=" + windowTitle, "--hold", "-x", "java", "-jar", decodedPath, "run").start();
+            } else {
+                System.err.println("OS could not be detected.");
             }
+            // destroy the original process
+            System.exit(0);
         } else {
             try {
                 new Hangman(true);
